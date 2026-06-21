@@ -1,0 +1,43 @@
+{
+  "camera": {
+    "defaultResolution": [1280, 720],
+    "maxResolution": [1920, 1080],
+    "facingMode": "user",
+    "frameRate": 30
+  },
+  "effects": {
+    "defaultIntensity": 0.8,
+    "defaultEffect": "normal"
+  },
+  "recording": {
+    "videoBitsPerSecond": 5000000,
+    "audioBitsPerSecond": 128000,
+    "mimeType": "video/webm;codecs=vp9,opus"
+  },
+  "tracking": {
+    "enabled": true,
+    "maxFaces": 1,
+    "minDetectionConfidence": 0.5,
+    "minTrackingConfidence": 0.5,
+    "refineLandmarks": true
+  },
+  "ui": {
+    "showFps": true,
+    "showEffectNames": true,
+    "defaultCategory": "All"
+  },
+  "background": {
+    "defaultColor": [0, 0, 0],
+    "greenScreenKey": [0, 255, 0]
+  },
+  "performance": {
+    "renderScale": 1.0,
+    "downsampleForTracking": 0.5,
+    "useWebGL2": true
+  },
+  "export": {
+    "snapshotFormat": "image/png",
+    "snapshotQuality": 0.92,
+    "videoFormat": "video/webm"
+  }
+}
