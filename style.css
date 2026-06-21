@@ -1,0 +1,240 @@
+/* ------------------------------
+   NEKOCAM – Global Styles
+------------------------------ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0a0f;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+}
+
+#app {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ----- Viewer ----- */
+#viewer {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #111;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+}
+
+#viewer video,
+#viewer canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#viewer video {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#viewer canvas {
+    z-index: 2;
+}
+
+#fps {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 10;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: #0f0;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 2px 12px;
+    border-radius: 20px;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ----- Controls ----- */
+#controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+#tabs button {
+    padding: 6px 16px;
+    border: 1px solid #333;
+    border-radius: 30px;
+    background: #1a1a22;
+    color: #aaa;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#tabs button.active {
+    background: #4a6cf7;
+    border-color: #4a6cf7;
+    color: #fff;
+}
+
+#effectsGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+#effectsGrid button {
+    padding: 4px 14px;
+    border: 1px solid #2a2a35;
+    border-radius: 20px;
+    background: #14141c;
+    color: #ccc;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: 0.15s;
+    white-space: nowrap;
+}
+
+#effectsGrid button.active {
+    background: #4a6cf7;
+    border-color: #4a6cf7;
+    color: #fff;
+}
+
+#sliderContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#sliderContainer label {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+#sliderContainer input[type="range"] {
+    width: 140px;
+    accent-color: #4a6cf7;
+    background: #222;
+    height: 4px;
+    border-radius: 4px;
+}
+
+#sliderContainer #intensityValue {
+    font-size: 0.75rem;
+    color: #fff;
+    min-width: 36px;
+    text-align: center;
+}
+
+#actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#actions button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 30px;
+    background: #2a2a35;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+#actions button:hover {
+    background: #3a3a4a;
+}
+
+#actions #recordBtn {
+    background: #e74c3c;
+}
+
+#actions #recordBtn:hover {
+    background: #c0392b;
+}
+
+#actions #recordBtn.recording {
+    background: #f1c40f;
+    color: #000;
+}
+
+#actions #snapshotBtn {
+    background: #4a6cf7;
+}
+
+#actions #snapshotBtn:hover {
+    background: #5a7cf7;
+}
+
+/* ----- Scrollbar (effects grid) ----- */
+#effectsGrid::-webkit-scrollbar {
+    width: 4px;
+}
+
+#effectsGrid::-webkit-scrollbar-track {
+    background: #1a1a22;
+}
+
+#effectsGrid::-webkit-scrollbar-thumb {
+    background: #4a6cf7;
+    border-radius: 4px;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 600px) {
+    #tabs button {
+        font-size: 0.65rem;
+        padding: 4px 12px;
+    }
+
+    #effectsGrid button {
+        font-size: 0.6rem;
+        padding: 3px 10px;
+    }
+
+    #sliderContainer input[type="range"] {
+        width: 100px;
+    }
+
+    #actions button {
+        font-size: 0.7rem;
+        padding: 6px 14px;
+    }
+}
