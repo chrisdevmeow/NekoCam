@@ -1,0 +1,12 @@
+#version 300 es
+precision highp float;
+uniform sampler2D u_texture;
+uniform float u_intensity;
+in vec2 v_texCoord;
+out vec4 fragColor;
+
+vec4 applyEffect(vec4 color, float intensity) {
+    float contrast = 1.0 + intensity * 2.0;
+    vec3 result = (color.rgb - 0.5) * contrast + 0.5;
+    return vec4(result, color.a);
+}
