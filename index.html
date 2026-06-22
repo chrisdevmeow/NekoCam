@@ -29,6 +29,17 @@
         </div>
     </div>
 
+    <!-- vConsole for mobile debugging -->
+    <script src="https://cdn.jsdelivr.net/npm/vconsole@3.15.1/dist/vconsole.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof VConsole !== 'undefined') {
+                var vConsole = new VConsole();
+                console.log('[NekoCam] vConsole ready');
+            }
+        });
+    </script>
+
     <script type="importmap">
         {
             "imports": {
