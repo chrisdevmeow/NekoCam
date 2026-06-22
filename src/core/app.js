@@ -1,13 +1,32 @@
 // ============================================================
 // NEKOCAM – src/core/app.js
-// Full debug version – every step logged
+// Debug: log before each import to find the broken file
 // ============================================================
 
+console.log('[APP] === app.js loaded ===');
+
+// ---- Import each file with a log before and after ----
+console.log('[APP] Importing camera.js...');
 import { initCamera, stopCamera } from './camera.js';
+console.log('[APP] ✅ camera.js loaded');
+
+console.log('[APP] Importing webgl-renderer.js...');
 import { initRenderer, getRenderer, startRenderer, stopRenderer } from './webgl-renderer.js';
+console.log('[APP] ✅ webgl-renderer.js loaded');
+
+console.log('[APP] Importing effects-registry.js...');
 import { loadEffects, getDefaultEffect, applyEffectById } from '../effects/effects-registry.js';
+console.log('[APP] ✅ effects-registry.js loaded');
+
+console.log('[APP] Importing ui-controller.js...');
 import { initUI } from '../ui/ui-controller.js';
+console.log('[APP] ✅ ui-controller.js loaded');
+
+console.log('[APP] Importing utils.js...');
 import { startFpsCounter } from '../ui/utils.js';
+console.log('[APP] ✅ utils.js loaded');
+
+console.log('[APP] All imports successful — starting app...');
 
 // ---- State ----
 let state = {
@@ -65,12 +84,10 @@ export async function initApp() {
             debugLog('Stream active:', stream.active);
             debugLog('Video tracks:', stream.getVideoTracks().length);
             
-            // Stop it immediately (we'll start it properly later)
             stream.getTracks().forEach(t => t.stop());
             debugLog('Direct camera test stream stopped');
         } catch (camErr) {
             debugError('Direct camera FAILED:', camErr.message);
-            debugLog('Check: HTTPS? Permissions? Another app using camera?');
         }
 
         // ---- STEP 3: Load effects ----
@@ -88,7 +105,7 @@ export async function initApp() {
             debugError('No default effect found');
         }
 
-        // ---- STEP 5: Init camera (real) ----
+        // ---- STEP 5: Init camera ----
         debugLog('4. Initializing camera via initCamera()...');
         try {
             const stream = await initCamera(video);
@@ -97,7 +114,7 @@ export async function initApp() {
             debugLog('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
         } catch (camInitErr) {
             debugError('initCamera() FAILED:', camInitErr.message);
-            debugLog('Trying fallback: direct getUserMedia to video element...');
+            debugLog('Trying fallback...');
             try {
                 const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = fallbackStream;
@@ -105,13 +122,12 @@ export async function initApp() {
                 debugLog('✅ Fallback camera SUCCESS');
             } catch (fallbackErr) {
                 debugError('Fallback camera FAILED:', fallbackErr.message);
-                // Show a visible error on screen
                 document.getElementById('fps').textContent = 'CAMERA ERROR';
                 document.getElementById('fps').style.color = 'red';
             }
         }
 
-        // ---- STEP 6: Init WebGL renderer ----
+        // ---- STEP 6: Init WebGL ----
         debugLog('5. Initializing WebGL renderer...');
         try {
             initRenderer(canvas, video);
@@ -169,7 +185,7 @@ export async function initApp() {
             debugError('Renderer start FAILED:', startErr.message);
         }
 
-        // ---- STEP 10: Start FPS counter ----
+        // ---- STEP 10: Start FPS ----
         debugLog('9. Starting FPS counter...');
         try {
             startFpsCounter();
@@ -178,14 +194,9 @@ export async function initApp() {
             debugError('FPS counter FAILED:', fpsErr.message);
         }
 
-        // ---- STEP 11: Final state ----
         state.isReady = true;
         debugLog('========== INIT COMPLETE ==========');
         debugLog('State:', state);
-        debugLog('NekoCam is ready!');
-
-        // ---- STEP 12: Manual override button (in case camera still dead) ----
-        addManualCameraButton();
 
     } catch (error) {
         debugError('FATAL init error:', error.message);
@@ -193,40 +204,6 @@ export async function initApp() {
         document.getElementById('fps').textContent = 'FATAL';
         document.getElementById('fps').style.color = 'red';
     }
-}
-
-// ---- Manual camera button (emergency fallback) ----
-function addManualCameraButton() {
-    const btn = document.createElement('button');
-    btn.textContent = '📷 MANUAL CAMERA START';
-    btn.style.position = 'fixed';
-    btn.style.bottom = '80px';
-    btn.style.left = '20px';
-    btn.style.zIndex = '999';
-    btn.style.padding = '12px 24px';
-    btn.style.background = '#ff4444';
-    btn.style.color = 'white';
-    btn.style.border = 'none';
-    btn.style.borderRadius = '8px';
-    btn.style.fontWeight = 'bold';
-    btn.style.cursor = 'pointer';
-    btn.onclick = async () => {
-        debugLog('MANUAL: Starting camera...');
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            const vid = document.getElementById('video');
-            vid.srcObject = stream;
-            await vid.play();
-            debugLog('✅ MANUAL: Camera started successfully');
-            btn.textContent = '✅ CAMERA ON';
-            btn.style.background = '#44aa44';
-        } catch (e) {
-            debugError('MANUAL: Camera failed:', e.message);
-            alert('Camera failed: ' + e.message);
-        }
-    };
-    document.body.appendChild(btn);
-    debugLog('Manual camera button added to page');
 }
 
 // ---- Cleanup ----
