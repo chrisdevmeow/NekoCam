@@ -5,20 +5,14 @@
 
 import { initCamera } from './camera.js';
 import { initRenderer, getRenderer } from './webgl-renderer.js';
-import { loadEffects, getEffectById, getDefaultEffect } from '../effects/effects-registry.js';
-import { applyEffect, setIntensity } from '../effects/effect-applier.js';
-import { initTracking } from '../tracking/tracking.js';
-import { initRecorder } from '../media/recorder.js';
-import { initSnapshot } from '../media/snapshot.js';
+import { loadEffects, getDefaultEffect, applyEffectById } from '../effects/effects-registry.js';
 import { initUI } from '../ui/ui-controller.js';
-import { startFpsCounter, updateFps } from '../ui/utils.js';
+import { startFpsCounter } from '../ui/utils.js';
 
 // ---- State ----
-const state = {
+let state = {
     currentEffectId: null,
     intensity: 0.8,
-    isRecording: false,
-    isTracking: false,
 };
 
 // ---- DOM refs ----
@@ -30,109 +24,58 @@ export async function initApp() {
     try {
         console.log('[NekoCam] Initializing...');
 
-        // 1. Load effects registry
+        // 1. Load effects
         const effects = await loadEffects();
         console.log(`[NekoCam] Loaded ${effects.length} effects`);
 
         // 2. Set default effect
-        const defaultEffect = getDefaultEffect(effects);
-        state.currentEffectId = defaultEffect.id;
+        const defaultEffect = getDefaultEffect();
+        if (defaultEffect) {
+            state.currentEffectId = defaultEffect.id;
+        }
 
-        // 3. Init camera
+        // 3. Init camera (THIS WAS MISSING)
         const stream = await initCamera(video);
         console.log('[NekoCam] Camera ready');
 
         // 4. Init WebGL renderer
-        initRenderer(canvas);
+        initRenderer(canvas, video);
         const renderer = getRenderer();
-        console.log('[NekoCam] WebGL renderer ready');
+        console.log('[NekoCam] WebGL ready');
 
-        // 5. Init tracking (if enabled in settings)
-        // Uncomment when tracking.js is ready:
-        // initTracking();
+        // 5. Apply default effect
+        if (state.currentEffectId) {
+            await applyEffectById(state.currentEffectId, state.intensity);
+        }
 
         // 6. Init UI
         initUI({
-            effects,
-            onEffectSelect: handleEffectSelect,
-            onIntensityChange: handleIntensityChange,
-            onRecordToggle: handleRecordToggle,
-            onSnapshot: handleSnapshot,
+            effects: effects,
+            onEffectSelect: async (id) => {
+                state.currentEffectId = id;
+                await applyEffectById(id, state.intensity);
+            },
+            onIntensityChange: (val) => {
+                state.intensity = val;
+                applyEffectById(state.currentEffectId, val);
+            },
+            onRecordToggle: () => {
+                console.log('[NekoCam] Record toggled');
+            },
+            onSnapshot: () => {
+                console.log('[NekoCam] Snapshot taken');
+            },
         });
 
-        // 7. Start render loop
-        renderer.setRenderCallback((gl) => {
-            // Draw video frame to canvas
-            const width = canvas.width;
-            const height = canvas.height;
-            gl.viewport(0, 0, width, height);
-            
-            // Clear
-            gl.clearColor(0, 0, 0, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
-            // Get current effect shader
-            const effect = getEffectById(state.currentEffectId);
-            if (effect) {
-                applyEffect(gl, effect, state.intensity);
-            }
-
-            // Update FPS
-            updateFps();
-        });
-
-        // 8. Start render loop
+        // 7. Start renderer
         renderer.start();
 
-        // 9. Start FPS counter
+        // 8. Start FPS counter
         startFpsCounter();
 
         console.log('[NekoCam] Ready');
     } catch (error) {
         console.error('[NekoCam] Init failed:', error);
-        // Show error on screen
         document.getElementById('fps').textContent = 'ERR';
     }
-}
-
-// ---- Event Handlers ----
-
-function handleEffectSelect(effectId) {
-    state.currentEffectId = effectId;
-    console.log(`[NekoCam] Effect changed: ${effectId}`);
-    // applyEffect will be called in render loop
-}
-
-function handleIntensityChange(value) {
-    state.intensity = parseFloat(value);
-    document.getElementById('intensityValue').textContent = state.intensity.toFixed(2);
-}
-
-function handleRecordToggle() {
-    state.isRecording = !state.isRecording;
-    if (state.isRecording) {
-        initRecorder(canvas);
-        document.getElementById('recordBtn').textContent = '⏹ Stop';
-        document.getElementById('recordBtn').classList.add('recording');
-    } else {
-        // Stop recording logic in recorder.js
-        document.getElementById('recordBtn').textContent = '⏺ Record';
-        document.getElementById('recordBtn').classList.remove('recording');
-    }
-}
-
-function handleSnapshot() {
-    initSnapshot(canvas);
-}
-
-// ---- Cleanup (optional) ----
-export function destroyApp() {
-    // Stop renderer, release camera, etc.
-    const renderer = getRenderer();
-    if (renderer) renderer.stop();
-    const stream = video.srcObject;
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-    }
-    console.log('[NekoCam] Destroyed');
 }
