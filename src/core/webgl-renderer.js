@@ -1,6 +1,6 @@
 // ============================================================
 // NEKOCAM – src/core/webgl-renderer.js
-// WebGL2 renderer – full pipeline with shader loading
+// WebGL2 renderer – full pipeline with dynamic shader loading
 // ============================================================
 
 let gl = null;
@@ -90,7 +90,6 @@ function setupTexture() {
 
 // ---- Load default shaders ----
 function loadDefaultShaders() {
-    // Vertex shader (fixed)
     const vsSource = `#version 300 es
         in vec2 a_position;
         in vec2 a_texCoord;
@@ -101,7 +100,6 @@ function loadDefaultShaders() {
         }
     `;
 
-    // Fragment shader – passthrough (no effect)
     const fsSource = `#version 300 es
         precision highp float;
         uniform sampler2D u_texture;
@@ -150,6 +148,7 @@ function compileShaders(vsSource, fsSource) {
     gl.a_position = gl.getAttribLocation(program, 'a_position');
     gl.a_texCoord = gl.getAttribLocation(program, 'a_texCoord');
     gl.u_texture = gl.getUniformLocation(program, 'u_texture');
+    gl.u_intensity = gl.getUniformLocation(program, 'u_intensity');
 
     const stride = 4 * 4;
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.vbo);
@@ -162,39 +161,30 @@ function compileShaders(vsSource, fsSource) {
     console.log('[WebGL] Shaders compiled');
 }
 
-// ---- Load effect from shaders/ folder ----
-export function loadEffect(effectId) {
-    if (!gl) return;
+// ---- Load effect from raw shader source (used by effects-registry) ----
+export function loadEffectShader(fragmentSource) {
+    if (!gl) {
+        console.error('[WebGL] Cannot load effect: WebGL not initialized');
+        return false;
+    }
 
-    const shaderPath = `../shaders/${effectId}.glsl`;
-    fetch(shaderPath)
-        .then(res => {
-            if (!res.ok) throw new Error(`Shader not found: ${effectId}`);
-            return res.text();
-        })
-        .then(source => {
-            // Wrap with version and main
-            const fullSource = `#version 300 es
-                precision highp float;
-                uniform sampler2D u_texture;
-                uniform float u_intensity;
-                in vec2 v_texCoord;
-                out vec4 fragColor;
-
-                ${source}
-
-                void main() {
-                    vec4 color = texture(u_texture, v_texCoord);
-                    fragColor = applyEffect(color, u_intensity);
-                }
-            `;
-            compileShaders(vertexShaderSource, fullSource);
-        })
-        .catch(err => {
-            console.error(`[WebGL] Failed to load effect ${effectId}:`, err);
-            // Fallback to passthrough
-            loadDefaultShaders();
-        });
+    try {
+        const vsSource = `#version 300 es
+            in vec2 a_position;
+            in vec2 a_texCoord;
+            out vec2 v_texCoord;
+            void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_texCoord = a_texCoord;
+            }
+        `;
+        compileShaders(vsSource, fragmentSource);
+        console.log('[WebGL] Effect shader loaded successfully');
+        return true;
+    } catch (error) {
+        console.error('[WebGL] Failed to load effect shader:', error);
+        return false;
+    }
 }
 
 // ---- Update video texture ----
