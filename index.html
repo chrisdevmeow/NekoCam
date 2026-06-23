@@ -34,19 +34,16 @@
     <script>
         var vConsole = new VConsole();
         console.log('[HTML] vConsole ready');
-        console.log('[HTML] Current URL:', window.location.href);
-        console.log('[HTML] Base path:', document.baseURI);
     </script>
 
-    <!-- ====== MODULE DEBUG ====== -->
+    <!-- Main App with full error catching -->
     <script type="module">
         console.log('[HTML] Module script started');
 
-        // Try to load app.js dynamically and log every step
         try {
-            console.log('[HTML] Attempting to import ./src/core/app.js...');
-            const module = await import('./src/core/app.js');
-            console.log('[HTML] ✅ app.js loaded successfully');
+            console.log('[HTML] Importing app.js?v=3...');
+            const module = await import('./src/core/app.js?v=3');
+            console.log('[HTML] app.js loaded successfully');
             console.log('[HTML] Exports:', Object.keys(module));
 
             if (typeof module.initApp === 'function') {
@@ -54,24 +51,15 @@
                 await module.initApp();
                 console.log('[HTML] ✅ initApp() completed');
             } else {
-                console.error('[HTML] ❌ initApp is not a function — exports:', module);
+                console.error('[HTML] ❌ initApp is not a function');
             }
         } catch (err) {
-            console.error('[HTML] ❌ Failed to load or execute app.js:', err);
-            console.error('[HTML] Error name:', err.name);
-            console.error('[HTML] Error message:', err.message);
-            console.error('[HTML] Stack trace:', err.stack);
+            console.error('[HTML] ❌ Failed to load or execute app.js:');
+            console.error('[HTML] Error name:', err.name || 'Unknown');
+            console.error('[HTML] Error message:', err.message || 'No message');
+            console.error('[HTML] Stack:', err.stack || 'No stack');
+            console.error('[HTML] Full error object:', err);
         }
-    </script>
-
-    <!-- ====== FALLBACK: Try loading as regular script ====== -->
-    <script>
-        console.log('[HTML] Fallback: Attempting to load app.js as classic script...');
-        const script = document.createElement('script');
-        script.src = 'src/core/app.js';
-        script.onload = () => console.log('[HTML] ✅ Fallback: app.js loaded as classic script');
-        script.onerror = () => console.error('[HTML] ❌ Fallback: app.js failed to load');
-        document.head.appendChild(script);
     </script>
 </body>
 </html>
