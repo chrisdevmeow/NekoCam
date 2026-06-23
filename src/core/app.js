@@ -12,7 +12,7 @@ console.log('[APP] ✅ camera.js loaded');
 
 console.log('[APP] Importing webgl-renderer.js...');
 import { initRenderer, getRenderer, startRenderer, stopRenderer } from './webgl-renderer.js?v=3';
-console.log('[APP] ✅ webgl-renderer.js loaded');
+console.log('[APP] ✅ webgl-renderer.js V3 loaded');
 
 console.log('[APP] Importing effects-registry.js...');
 import { loadEffects, getDefaultEffect, applyEffectById } from '../effects/effects-registry.js';
