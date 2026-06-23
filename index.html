@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>NekoCam</title>
     <link rel="stylesheet" href="style.css" />
+    <style>
+        /* Flip button style */
+        #flipBtn {
+            background: #3a3a4a;
+            font-size: 1.2rem;
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
@@ -25,6 +37,7 @@
             <div id="actions">
                 <button id="recordBtn">⏺ Record</button>
                 <button id="snapshotBtn">📸 Snapshot</button>
+                <button id="flipBtn">🔄</button>
             </div>
         </div>
     </div>
@@ -33,33 +46,33 @@
     <script src="https://cdn.jsdelivr.net/npm/vconsole@3.15.1/dist/vconsole.min.js"></script>
     <script>
         var vConsole = new VConsole();
-        console.log('[HTML] vConsole ready');
+        console.log('[NekoCam] vConsole ready');
     </script>
 
-    <!-- Main App with full error catching -->
-    <script type="module">
-        console.log('[HTML] Module script started');
+    <!-- Main App -->
+    <script type="module" src="src/core/app.js"></script>
 
-        try {
-            console.log('[HTML] Importing app.js?v=3...');
-            const module = await import('./src/core/app.js?v=3');
-            console.log('[HTML] app.js loaded successfully');
-            console.log('[HTML] Exports:', Object.keys(module));
-
-            if (typeof module.initApp === 'function') {
-                console.log('[HTML] Calling initApp()...');
-                await module.initApp();
-                console.log('[HTML] ✅ initApp() completed');
-            } else {
-                console.error('[HTML] ❌ initApp is not a function');
+    <!-- Flip Camera Handler -->
+    <script>
+        document.getElementById('flipBtn').addEventListener('click', async () => {
+            const video = document.getElementById('video');
+            const stream = video.srcObject;
+            if (!stream) return;
+            const track = stream.getVideoTracks()[0];
+            if (!track) return;
+            const current = track.getSettings().facingMode || 'user';
+            const next = current === 'user' ? 'environment' : 'user';
+            try {
+                const newStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: next }
+                });
+                video.srcObject = newStream;
+                await video.play();
+                console.log('[Flip] Switched to:', next);
+            } catch (e) {
+                console.error('[Flip] Failed:', e);
             }
-        } catch (err) {
-            console.error('[HTML] ❌ Failed to load or execute app.js:');
-            console.error('[HTML] Error name:', err.name || 'Unknown');
-            console.error('[HTML] Error message:', err.message || 'No message');
-            console.error('[HTML] Stack:', err.stack || 'No stack');
-            console.error('[HTML] Full error object:', err);
-        }
+        });
     </script>
 </body>
 </html>
