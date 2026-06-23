@@ -1,32 +1,13 @@
 // ============================================================
 // NEKOCAM – src/core/app.js
-// Debug: log before each import to find the broken file
+// Full raw debug – no wrappers, just console.log
 // ============================================================
 
-console.log('[APP] === app.js loaded ===');
-
-// ---- Import each file with a log before and after ----
-console.log('[APP] Importing camera.js...');
 import { initCamera, stopCamera } from './camera.js';
-console.log('[APP] ✅ camera.js loaded');
-
-console.log('[APP] Importing webgl-renderer.js...');
-import { initRenderer, getRenderer, startRenderer, stopRenderer } from './webgl-renderer.js?v=3';
-console.log('[APP] ✅ webgl-renderer.js V3 loaded');
-
-console.log('[APP] Importing effects-registry.js...');
+import { initRenderer, getRenderer, startRenderer, stopRenderer } from './webgl-renderer.js';
 import { loadEffects, getDefaultEffect, applyEffectById } from '../effects/effects-registry.js';
-console.log('[APP] ✅ effects-registry.js loaded');
-
-console.log('[APP] Importing ui-controller.js...');
 import { initUI } from '../ui/ui-controller.js';
-console.log('[APP] ✅ ui-controller.js loaded');
-
-console.log('[APP] Importing utils.js...');
 import { startFpsCounter } from '../ui/utils.js';
-console.log('[APP] ✅ utils.js loaded');
-
-console.log('[APP] All imports successful — starting app...');
 
 // ---- State ----
 let state = {
@@ -39,182 +20,112 @@ let state = {
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 
-// ---- Debug logger ----
-function debugLog(label, data) {
-    const msg = `[NekoCam] ${label}`;
-    if (data !== undefined) {
-        console.log(msg, data);
-        if (typeof vConsole !== 'undefined' && vConsole) {
-            vConsole.log(msg, data);
-        }
-    } else {
-        console.log(msg);
-        if (typeof vConsole !== 'undefined' && vConsole) {
-            vConsole.log(msg);
-        }
-    }
-}
-
-function debugError(label, error) {
-    const msg = `[NekoCam] ❌ ${label}`;
-    console.error(msg, error || '');
-    if (typeof vConsole !== 'undefined' && vConsole) {
-        vConsole.error(msg, error || '');
-    }
-}
-
 // ---- Init ----
 export async function initApp() {
-    debugLog('========== INIT START ==========');
-    debugLog('1. Checking DOM elements...');
-    debugLog('video element:', video);
-    debugLog('canvas element:', canvas);
-
-    if (!video) debugError('video element not found!');
-    if (!canvas) debugError('canvas element not found!');
+    console.log('[APP] ========== INIT START ==========');
+    console.log('[APP] video element:', video);
+    console.log('[APP] canvas element:', canvas);
 
     try {
-        // ---- STEP 2: DIRECT CAMERA TEST ----
-        debugLog('2. Testing camera directly...');
+        // ---- STEP 1: Direct camera test ----
+        console.log('[APP] STEP 1: Testing camera directly...');
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { width: 640, height: 480 } 
             });
-            debugLog('✅ Direct camera SUCCESS');
-            debugLog('Stream active:', stream.active);
-            debugLog('Video tracks:', stream.getVideoTracks().length);
-            
+            console.log('[APP] ✅ Direct camera SUCCESS');
+            console.log('[APP] Stream active:', stream.active);
             stream.getTracks().forEach(t => t.stop());
-            debugLog('Direct camera test stream stopped');
         } catch (camErr) {
-            debugError('Direct camera FAILED:', camErr.message);
+            console.error('[APP] ❌ Direct camera FAILED:', camErr.message);
         }
 
-        // ---- STEP 3: Load effects ----
-        debugLog('3. Loading effects from config/effects.json...');
+        // ---- STEP 2: Load effects ----
+        console.log('[APP] STEP 2: Loading effects...');
         const effects = await loadEffects();
-        debugLog(`✅ Loaded ${effects.length} effects`);
-        debugLog('First 3 effects:', effects.slice(0, 3));
+        console.log('[APP] ✅ Effects loaded:', effects.length);
 
-        // ---- STEP 4: Set default effect ----
+        // ---- STEP 3: Set default effect ----
+        console.log('[APP] STEP 3: Setting default effect...');
         const defaultEffect = getDefaultEffect();
         if (defaultEffect) {
             state.currentEffectId = defaultEffect.id;
-            debugLog(`✅ Default effect: ${defaultEffect.name} (${defaultEffect.id})`);
-        } else {
-            debugError('No default effect found');
+            console.log('[APP] ✅ Default effect:', defaultEffect.name);
         }
 
-        // ---- STEP 5: Init camera ----
-        debugLog('4. Initializing camera via initCamera()...');
-        try {
-            const stream = await initCamera(video);
-            debugLog('✅ initCamera() returned stream');
-            debugLog('Stream active:', stream.active);
-            debugLog('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
-        } catch (camInitErr) {
-            debugError('initCamera() FAILED:', camInitErr.message);
-            debugLog('Trying fallback...');
-            try {
-                const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = fallbackStream;
-                await video.play();
-                debugLog('✅ Fallback camera SUCCESS');
-            } catch (fallbackErr) {
-                debugError('Fallback camera FAILED:', fallbackErr.message);
-                document.getElementById('fps').textContent = 'CAMERA ERROR';
-                document.getElementById('fps').style.color = 'red';
-            }
-        }
+        // ---- STEP 4: Init camera ----
+        console.log('[APP] STEP 4: Initializing camera...');
+        const stream = await initCamera(video);
+        console.log('[APP] ✅ Camera initialized');
+        console.log('[APP] Video dimensions:', video.videoWidth, 'x', video.videoHeight);
 
-        // ---- STEP 6: Init WebGL ----
-        debugLog('5. Initializing WebGL renderer...');
-        try {
-            initRenderer(canvas, video);
-            const renderer = getRenderer();
-            debugLog('✅ WebGL renderer initialized');
-            debugLog('Renderer object:', renderer);
-        } catch (renderErr) {
-            debugError('WebGL renderer FAILED:', renderErr.message);
-        }
+        // ---- STEP 5: Init WebGL ----
+        console.log('[APP] STEP 5: Initializing WebGL...');
+        initRenderer(canvas, video);
+        const renderer = getRenderer();
+        console.log('[APP] ✅ WebGL initialized');
 
-        // ---- STEP 7: Apply default effect ----
+        // ---- STEP 6: Apply default effect ----
+        console.log('[APP] STEP 6: Applying default effect...');
         if (state.currentEffectId) {
-            debugLog(`6. Applying default effect: ${state.currentEffectId}`);
-            try {
-                const result = await applyEffectById(state.currentEffectId, state.intensity);
-                debugLog(`✅ Effect applied, result: ${result}`);
-            } catch (effectErr) {
-                debugError('Effect application FAILED:', effectErr.message);
-            }
+            await applyEffectById(state.currentEffectId, state.intensity);
+            console.log('[APP] ✅ Effect applied');
         }
 
-        // ---- STEP 8: Init UI ----
-        debugLog('7. Initializing UI...');
-        try {
-            initUI({
-                effects: effects,
-                onEffectSelect: async (id) => {
-                    debugLog(`UI: Effect selected: ${id}`);
-                    state.currentEffectId = id;
-                    await applyEffectById(id, state.intensity);
-                },
-                onIntensityChange: (val) => {
-                    debugLog(`UI: Intensity changed: ${val}`);
-                    state.intensity = val;
-                    applyEffectById(state.currentEffectId, val);
-                },
-                onRecordToggle: () => {
-                    debugLog('UI: Record toggled');
-                },
-                onSnapshot: () => {
-                    debugLog('UI: Snapshot taken');
-                },
-            });
-            debugLog('✅ UI initialized');
-        } catch (uiErr) {
-            debugError('UI initialization FAILED:', uiErr.message);
-        }
+        // ---- STEP 7: Init UI ----
+        console.log('[APP] STEP 7: Initializing UI...');
+        initUI({
+            effects: effects,
+            onEffectSelect: async (id) => {
+                console.log('[APP] UI: Effect selected:', id);
+                state.currentEffectId = id;
+                await applyEffectById(id, state.intensity);
+            },
+            onIntensityChange: (val) => {
+                console.log('[APP] UI: Intensity changed:', val);
+                state.intensity = val;
+                applyEffectById(state.currentEffectId, val);
+            },
+            onRecordToggle: () => {
+                console.log('[APP] UI: Record toggled');
+            },
+            onSnapshot: () => {
+                console.log('[APP] UI: Snapshot taken');
+            },
+        });
+        console.log('[APP] ✅ UI initialized');
 
-        // ---- STEP 9: Start renderer ----
-        debugLog('8. Starting renderer...');
-        try {
-            startRenderer();
-            debugLog('✅ Renderer started');
-        } catch (startErr) {
-            debugError('Renderer start FAILED:', startErr.message);
-        }
+        // ---- STEP 8: Start renderer ----
+        console.log('[APP] STEP 8: Starting renderer...');
+        startRenderer();
+        console.log('[APP] ✅ Renderer started');
 
-        // ---- STEP 10: Start FPS ----
-        debugLog('9. Starting FPS counter...');
-        try {
-            startFpsCounter();
-            debugLog('✅ FPS counter started');
-        } catch (fpsErr) {
-            debugError('FPS counter FAILED:', fpsErr.message);
-        }
+        // ---- STEP 9: Start FPS counter ----
+        console.log('[APP] STEP 9: Starting FPS counter...');
+        startFpsCounter();
+        console.log('[APP] ✅ FPS counter started');
 
         state.isReady = true;
-        debugLog('========== INIT COMPLETE ==========');
-        debugLog('State:', state);
+        console.log('[APP] ========== INIT COMPLETE ==========');
+        console.log('[APP] State:', state);
 
-    } catch (error) {
-        debugError('FATAL init error:', error.message);
-        debugLog('Stack trace:', error.stack);
-        document.getElementById('fps').textContent = 'FATAL';
-        document.getElementById('fps').style.color = 'red';
+    } catch (err) {
+        console.error('[APP] ❌ FATAL error in initApp:');
+        console.error('[APP] Error name:', err.name);
+        console.error('[APP] Error message:', err.message);
+        console.error('[APP] Stack:', err.stack);
     }
 }
 
 // ---- Cleanup ----
 export function destroyApp() {
-    debugLog('Destroying NekoCam...');
+    console.log('[APP] Destroying...');
     try {
         stopRenderer();
         stopCamera(video);
         state.isReady = false;
-        debugLog('✅ NekoCam destroyed');
+        console.log('[APP] ✅ Destroyed');
     } catch (e) {
-        debugError('Destroy failed:', e.message);
+        console.error('[APP] ❌ Destroy failed:', e.message);
     }
 }
