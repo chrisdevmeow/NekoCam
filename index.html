@@ -46,11 +46,21 @@
     <script src="https://cdn.jsdelivr.net/npm/vconsole@3.15.1/dist/vconsole.min.js"></script>
     <script>
         var vConsole = new VConsole();
-        console.log('[NekoCam] vConsole ready');
+        console.log('[HTML] vConsole ready');
     </script>
 
-    <!-- Main App -->
-    <script type="module" src="src/core/app.js"></script>
+    <!-- Main App – dynamic import -->
+    <script type="module">
+        console.log('[HTML] Module script started');
+        try {
+            const { initApp } = await import('./src/core/app.js?v=4');
+            console.log('[HTML] app.js imported');
+            await initApp();
+            console.log('[HTML] initApp() returned');
+        } catch (err) {
+            console.error('[HTML] ❌ Error:', err);
+        }
+    </script>
 
     <!-- Flip Camera Handler -->
     <script>
