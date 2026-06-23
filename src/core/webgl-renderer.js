@@ -20,6 +20,11 @@ export function initRenderer(canvasElement, videoElement) {
     canvas = canvasElement;
     video = videoElement || document.getElementById('video');
 
+    if (!canvas) {
+        console.error('[WebGL] No canvas element provided');
+        return;
+    }
+
     gl = canvas.getContext('webgl2', {
         alpha: false,
         antialias: false,
@@ -161,7 +166,7 @@ function compileShaders(vsSource, fsSource) {
     console.log('[WebGL] Shaders compiled');
 }
 
-// ---- Load effect from raw shader source (used by effects-registry) ----
+// ---- Load effect from raw shader source ----
 export function loadEffectShader(fragmentSource) {
     if (!gl) {
         console.error('[WebGL] Cannot load effect: WebGL not initialized');
@@ -219,24 +224,47 @@ function renderLoop() {
     animationId = requestAnimationFrame(renderLoop);
 }
 
-// ---- Start / Stop ----
+// ---- Start renderer ----
 export function startRenderer() {
     if (isRunning) return;
     isRunning = true;
     renderLoop();
+    console.log('[WebGL] Renderer started');
 }
 
+// ---- Stop renderer ----
 export function stopRenderer() {
     isRunning = false;
     if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
     }
+    console.log('[WebGL] Renderer stopped');
 }
 
-// ---- Getters ----
-export function getGL() { return gl; }
-export function getCanvas() { return canvas; }
+// ---- Get renderer state ----
+export function getRenderer() {
+    return {
+        start: startRenderer,
+        stop: stopRenderer,
+        getGL: () => gl,
+        getCanvas: () => canvas,
+        isRunning: () => isRunning,
+        loadEffect: loadEffectShader,
+        setCallback: setRenderCallback,
+        resize: resizeCanvas,
+    };
+}
+
+// ---- Get WebGL context ----
+export function getGL() {
+    return gl;
+}
+
+// ---- Get canvas ----
+export function getCanvas() {
+    return canvas;
+}
 
 // ---- Destroy ----
 export function destroyRenderer() {
@@ -249,4 +277,5 @@ export function destroyRenderer() {
     }
     gl = null;
     canvas = null;
+    console.log('[WebGL] Renderer destroyed');
 }
