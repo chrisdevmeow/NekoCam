@@ -100,7 +100,7 @@ let loadedShaders = {};
 // ---- Load effects from JSON ----
 export async function loadEffects() {
     try {
-        const response = await fetch('../config/effects.json');
+        const response = await fetch('../../config/effects.json');
         if (!response.ok) throw new Error('Failed to load effects.json');
         const data = await response.json();
         effects = data.effects || [];
